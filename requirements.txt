@@ -1,0 +1,4 @@
+argostranslate
+openpyxl
+pandas
+streamlit

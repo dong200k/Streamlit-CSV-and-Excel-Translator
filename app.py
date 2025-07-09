@@ -1,9 +1,7 @@
 import time
 import streamlit as st
 import pandas as pd
-import numpy as np
 import re
-import io
 from tempfile import NamedTemporaryFile
 import argostranslate.translate
 from io import BytesIO
@@ -11,6 +9,20 @@ from openpyxl import load_workbook
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
 import openpyxl
+
+def download_argos_language_pack():
+    from_code = "zh"
+    to_code = "en"
+
+    # Download and install Argos Translate package
+    argostranslate.package.update_package_index()
+    available_packages = argostranslate.package.get_available_packages()
+    package_to_install = next(
+        filter(
+            lambda x: x.from_code == from_code and x.to_code == to_code, available_packages
+        )
+    )
+    argostranslate.package.install_from_path(package_to_install.download())
 
 def has_chinese_chars(text):
     """Check if text contains Chinese characters"""
@@ -120,7 +132,6 @@ def translate_file(uploaded_file):
         end_time = time.time()
         seconds_elapsed = round((end_time - start_time), 2)
         st.success("File translated successfully in " + str(seconds_elapsed) + " seconds")
-
  
 def show_ui():
     # uploaded_file = st.file_uploader("Choose an Excel/csv file", type={"xlsx", 'csv'})
