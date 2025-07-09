@@ -144,4 +144,5 @@ def show_ui():
             st.error("Translation/Upload failed: " + repr(e))
 
 st.title("Excel and CSV Translator (Chinese to English)")
+download_argos_language_pack()
 show_ui()
