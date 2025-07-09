@@ -1,3 +1,4 @@
+import time
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -78,44 +79,58 @@ def translate_df(df):
     return new_df
 
 def translate_file(uploaded_file):
+    if uploaded_file is None: return
     file_name = uploaded_file.name
 
-    if file_name.endswith('.xlsx'):
-        # Load workbook (preserves all formatting)
-        wb = load_workbook(uploaded_file)
-        
-        # Show sheet info (optional)
-        sheet_names = wb.sheetnames
-        st.success(f"Loaded workbook with {len(sheet_names)} sheets: {', '.join(sheet_names)}")
-        
-        # Download button
-        output = translate_and_save_workbook(wb)
-        st.download_button(
-            label="Download Translated Excel (With Formatting)",
-            data=output.getvalue(),
-            file_name="translated_" + uploaded_file.name,
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
-    elif file_name.endswith('.csv'):
-        df = pd.read_csv(uploaded_file)
-        translated_df = translate_df(df)
+    start_time = time.time()
+    with st.spinner('Translating Files...'):
+        if file_name.endswith('.xlsx'):
+            # Load workbook (preserves all formatting)
+            wb = load_workbook(uploaded_file)
+            
+            # Show sheet info (optional)
+            sheet_names = wb.sheetnames
+            # st.success(f"Loaded workbook with {len(sheet_names)} sheets: {', '.join(sheet_names)}")
+            
+            # Download button
+            output = translate_and_save_workbook(wb)
+            st.download_button(
+                label="Download Translated Excel (With Formatting)",
+                data=output.getvalue(),
+                file_name="translated_" + uploaded_file.name,
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+        elif file_name.endswith('.csv'):
+            df = pd.read_csv(uploaded_file)
+            translated_df = translate_df(df)
 
-        download_file_name = "translated_" + file_name
-        csv = translated_df.to_csv(index=False).encode('utf-8')
+            download_file_name = "translated_" + file_name
+            csv = translated_df.to_csv(index=False).encode('utf-8')
 
-        download2 = st.download_button(
-            label="Download data as csv",
-            data=csv,
-            file_name=download_file_name,
-            mime='text/csv'
-        )
+            download2 = st.download_button(
+                label="Download Translated csv",
+                data=csv,
+                file_name=download_file_name,
+                mime='text/csv'
+            )
+        else:
+            st.warning("File must be .csv or .xlsx!")
+            return
 
+        end_time = time.time()
+        seconds_elapsed = round((end_time - start_time), 2)
+        st.success("File translated successfully in " + str(seconds_elapsed) + " seconds")
+
+ 
 def show_ui():
     # uploaded_file = st.file_uploader("Choose an Excel/csv file", type={"xlsx", 'csv'})
     uploaded_file = st.file_uploader("Upload Excel File", type=['xlsx', 'csv'])
 
     if uploaded_file is not None:
-        translate_file(uploaded_file)
+        try:
+            translate_file(uploaded_file)
+        except Exception as e:
+            st.error("Translation/Upload failed: " + repr(e))
 
 st.title("Excel and CSV Translator (Chinese to English)")
 show_ui()
